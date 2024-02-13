@@ -1,7 +1,26 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
 
-from .models import User
+from .models import Category, Genre, Title
 
 
-admin.site.register(User, UserAdmin)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+    list_filter = ('name', 'slug')
+
+
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+    list_filter = ('name', 'slug')
+
+
+class TitleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'year', 'description', 'genre', 'category')
+    search_fields = ('name',)
+    list_filter = ('name', 'year')
+
+
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Title, TitleAdmin)
+admin.site.register(Genre, GenreAdmin)
