@@ -47,7 +47,7 @@ class TitleGETSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для POST, PUT, DELETE запросов к произведениям."""
+    """Сериализатор для POST, PUT, DELETE, PATCH запросов к произведениям."""
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug',
