@@ -30,8 +30,13 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
+    def validate(self, data):
+        if self.context['request'].username == 'me':
+            raise serializers.ValidationError('username me запрещен')
+        return data
 
-class GetTokenSerializer(serializers.Serializer):
+
+class TokenSerializer(serializers.Serializer):
     username = serializers.SlugField(required=True)
     confirmation_code = serializers.SlugField(required=True)
 
