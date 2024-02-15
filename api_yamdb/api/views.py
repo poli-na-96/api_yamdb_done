@@ -1,4 +1,3 @@
-
 from uuid import uuid4
 
 from rest_framework.response import Response
@@ -20,14 +19,14 @@ from django.shortcuts import get_object_or_404
 from .serializers import CommentSerializer, ReviewSerializer
 from reviews.models import Review, Title
 
-from django_filters.rest_framework import DjangoFilterBackend
+# from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Title, Genre, Category
 from .serializers import (TitleGETSerializer, TitleSerializer,
                           GenreSerializer, CategorySerializer)
-from .permissions import AdminOrReadOnly
+# from .permissions import AdminOrReadOnly
 
 
 @api_view(['POST'])
@@ -106,7 +105,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     """Получение, добавление, удаление жанра."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [AdminOrReadOnly]
+    # permission_classes = [AdminOrReadOnly]
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -117,7 +116,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """Получение, добавление, удаление категории."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [AdminOrReadOnly]
+    # permission_classes = [AdminOrReadOnly]
     pagination_class = LimitOffsetPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -128,9 +127,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     """Получение, добавление, изменение и удаление произведения."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [AdminOrReadOnly]
+    # permission_classes = [AdminOrReadOnly]
     pagination_class = LimitOffsetPagination
-    filter_backends = (DjangoFilterBackend,)
+    # filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
     def get_serializer_class(self):

@@ -13,6 +13,7 @@ urlpatterns = [
     path('v1/auth/token/', token, name='token'),
     path('v1/auth/signup/', signup, name='token'),
 #    path('v1/users/me/', UserView.as_view(), name='user_me'),
+]
 
 router.register(r'titles/(?P<title_id>\d+)/reviews',
                 ReviewsViewSet, basename='reviews')
