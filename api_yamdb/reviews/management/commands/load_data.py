@@ -1,32 +1,51 @@
 import csv
+import os
 
-from django.conf import settings
-from django.core.management import BaseCommand
+from django.core.management.base import BaseCommand
 
-from reviews.models import (Category, Comment, Genre,
-                            Review, Title, GenreTitle)
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
 
 
 class Command(BaseCommand):
     help = 'Загрузка данных из CSV в базу данных'
 
-    def handle(self, *args, **options):
-        models = {
-            'User': (User, 'users.csv'),
-            'Category': (Category, 'category.csv'),
-            'Title': (Title, 'titles.csv'),
-            'Comment': (Comment, 'comments.csv'),
-            'Genre': (Genre, 'genre.csv'),
-            'Review': (Review, 'review.csv'),
-            'GenreTitle': (GenreTitle, 'genre_title.csv')
+
+class Command(BaseCommand):
+    """
+    Добавляет данные из csv файлов в модели.
+    Для запуска скрипта: python manage.py load_data
+    """
+
+    def handle(self, *args, **kwargs):
+        dir_path = os.path.abspath(
+            os.path.join('.', 'static', 'data')
+        )
+
+        file_model = {
+            'category.csv': Category,
+            'genre.csv': Genre,
+            'users.csv': User,
+            'titles.csv': Title,
+            'genre_title.csv': GenreTitle,
+            'review.csv': Review,
+            'comments.csv': Comment,
         }
 
-        for model_name, (model, csv_file) in models.items():
-            with open(f'{settings.BASE_DIR}/static/data/{csv_file}', 'r',
-                      encoding='utf-8') as file:
-                reader = csv.DictReader(file)
-                instances = [model(**row) for row in reader]
-                model.objects.bulk_create(instances)
+        for file, model in file_model.items():
+            path = os.path.join(dir_path, file)
 
+            obj_list = []
+            with open(path, encoding='utf-8') as csv_file:
+                for obj_dict in csv.DictReader(csv_file):
+                    if file == 'titles.csv':
+                        obj_dict['category'] = Category(
+                            int(obj_dict['category'])
+                        )
+                    elif file == 'review.csv':
+                        obj_dict['author'] = User(int(obj_dict['author']))
+                    elif file == 'comments.csv':
+                        obj_dict['author'] = User(int(obj_dict['author']))
+                    obj_list.append(model(**obj_dict))
+                model.objects.bulk_create(obj_list)
         self.stdout.write(self.style.SUCCESS('Данные успешно загружены'))
