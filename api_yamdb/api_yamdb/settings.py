@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # 'django_filters',
+    'django_filters',
     'reviews.apps.ReviewsConfig',
 ]
 
@@ -131,4 +131,3 @@ AUTH_USER_MODEL = "user.User"
 
 
 ADMIN_EMAIL = 'admin@admin.com'
-

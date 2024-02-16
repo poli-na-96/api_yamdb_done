@@ -13,7 +13,6 @@ from .serializers import SignUpSerializer, TokenSerializer
 from user.models import User
 
 from rest_framework import viewsets
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 # from django.shortcuts import render
@@ -22,15 +21,15 @@ from reviews.models import Review, Title
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
-from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Title, Genre, Category
+from .mixins import GetListCreateDeleteMixin
 from .serializers import (TitleGETSerializer, TitleSerializer,
                           GenreSerializer, CategorySerializer,
                           UserSerializer)
-from .permissions import (AnonimReadOnly, SuperUserOrAdminOnly,
-                          AdminOrReadOnly, AuthUserOrReadOnly,
-                          Moderator, ReviewOrCommentPermission, 
+from .permissions import (SuperUserOrAdminOnly,
+                          AdminOrReadOnly,
+                          ReviewOrCommentPermission,
                           TitlePermission)
 from user.models import User
 # from .permissions import AdminOrReadOnly
@@ -82,12 +81,13 @@ def signup(request):
 @permission_classes([AllowAny])
 def token(request):
     serializer = TokenSerializer(data=request.data)
-    #user = get_object_or_404(User, username=serializer.data.get('username'))
     if serializer.is_valid(raise_exception=True):
-        user = get_object_or_404(User, username=serializer.data.get('username'))
+        user = get_object_or_404(User, username=serializer.data.get(
+            'username'))
         if request.data.get('confirmation_code') == user.confirmation_code:
             return Response(
-                {'token': str(AccessToken.for_user(get_object_or_404(User, username=serializer.data.get('username'))))},
+                {'token': str(AccessToken.for_user(get_object_or_404(
+                    User, username=serializer.data.get('username'))))},
                 status=status.HTTP_200_OK
             )
     return Response(
@@ -110,7 +110,6 @@ def create_and_send_confirmation_code_by_email(user):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = [Moderator, AnonimReadOnly, SuperUserOrAdminOnly, AuthUserOrReadOnly)
     permission_classes = (ReviewOrCommentPermission,)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
@@ -139,7 +138,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(GetListCreateDeleteMixin):
     """Получение, добавление, удаление жанра."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -149,7 +148,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(GetListCreateDeleteMixin):
     """Получение, добавление, удаление категории."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -165,7 +164,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = [TitlePermission]
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_fields = ('genre__slug', 'category__slug', 'name', 'year')
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
@@ -174,11 +173,3 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ('list', 'retrieve'):
             return TitleGETSerializer
         return TitleSerializer
-
-    def method_not_allowed(self, request):
-        if request.method == 'PUT':
-            serializer = TitleGETSerializer(request.user)
-            return Response(
-                serializer.data,
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
-            )

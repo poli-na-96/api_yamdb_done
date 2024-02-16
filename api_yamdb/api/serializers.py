@@ -5,7 +5,7 @@ from user.models import User
 from reviews.models import Comment, Review, Title
 from django.db.models import Avg
 from django.utils import timezone
-from rest_framework import serializers, validators
+from rest_framework import serializers
 
 from reviews.models import (Title, Genre, Category)
 
@@ -49,7 +49,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if Review.objects.filter(author=self.context['request'].user).exists():
-            raise serializers.ValidationError('Нельзя оставлять несколько отзывов')
+            raise serializers.ValidationError('Нельзя оставлять '
+                                              'несколько отзывов')
         return data
 
 
@@ -68,7 +69,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -80,8 +81,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class TitleGETSerializer(serializers.ModelSerializer):
     """Сериализатор для GET запросов к произведениям."""
-    category = CategorySerializer(read_only=True, many=True)
-    genre = GenreSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -102,7 +103,7 @@ class TitleGETSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         avg_score = obj.reviews.aggregate(Avg('score'))['score__avg']
-        return avg_score if avg_score is not None else 0
+        return avg_score if avg_score is not None else None
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -118,7 +119,7 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',
         required=True
     )
-    
+
     class Meta:
         model = Title
         fields = '__all__'

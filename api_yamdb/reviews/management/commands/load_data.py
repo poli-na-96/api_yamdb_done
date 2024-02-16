@@ -4,11 +4,7 @@ import os
 from django.core.management.base import BaseCommand
 
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
-from users.models import User
-
-
-class Command(BaseCommand):
-    help = 'Загрузка данных из CSV в базу данных'
+from user.models import User
 
 
 class Command(BaseCommand):
@@ -43,7 +39,7 @@ class Command(BaseCommand):
                             int(obj_dict['category'])
                         )
                     elif file == 'review.csv':
-                        obj_dict['author'] = User(int(obj_dict['author']))
+                        obj_dict['author'] = User(int(obj_dict['author_id']))
                     elif file == 'comments.csv':
                         obj_dict['author'] = User(int(obj_dict['author']))
                     obj_list.append(model(**obj_dict))
