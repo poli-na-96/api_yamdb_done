@@ -1,36 +1,13 @@
 from rest_framework import serializers
 
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
-
 from user.models import User
 
 from reviews.models import Comment, Review, Title
 from django.db.models import Avg
 from django.utils import timezone
-from rest_framework import serializers
+from rest_framework import serializers, validators
 
 from reviews.models import (Title, Genre, Category)
-
-
-class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(
-        required=True,
-        validators=[UniqueValidator(
-            queryset=User.objects.all(),
-            message='Указанная почта уже используется')],)
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'username',
-        )
-        validators = (
-            UniqueTogetherValidator(
-                queryset=User.objects.all(), fields=('username', 'email',),
-                message='Указанный username занят'
-            ),
-        )
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -39,7 +16,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def validate(self, data):
-        if self.context['request'].username == 'me':
+        if data.get('username') == 'me':
             raise serializers.ValidationError('username me запрещен')
         return data
 
@@ -62,19 +39,24 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        read_only=True, default=serializers.CurrentUserDefault())
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username')
     title = serializers.SlugRelatedField(slug_field='id', read_only=True)
 
     class Meta:
         fields = '__all__'
         model = Review
 
+    def validate(self, data):
+        if Review.objects.filter(author=self.context['request'].user).exists():
+            raise serializers.ValidationError('Нельзя оставлять несколько отзывов')
+        return data
+
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(
-        read_only=True, default=serializers.CurrentUserDefault())
-    comment = serializers.SlugRelatedField(slug_field='id', read_only=True)
+    author = author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username')
+    review = serializers.SlugRelatedField(slug_field='id', read_only=True)
 
     class Meta:
         fields = '__all__'
@@ -83,9 +65,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для жанров."""
+
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
