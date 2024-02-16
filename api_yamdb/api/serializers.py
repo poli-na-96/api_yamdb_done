@@ -11,6 +11,7 @@ from rest_framework import serializers
 
 from reviews.models import (Title, Genre, Category)
 
+
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
@@ -50,6 +51,14 @@ class TokenSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'username',
+                  'bio', 'role', 'email')
+        read_only_field = ('role',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):

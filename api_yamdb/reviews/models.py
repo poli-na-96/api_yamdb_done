@@ -75,7 +75,6 @@ class GenreTitle(models.Model):
         return f'{self.genre} {self.title}'
 
 
-
 class Review(models.Model):
     """Отзыв на произведение."""
     text = models.TextField(verbose_name='Отзыв')
