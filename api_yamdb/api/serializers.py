@@ -1,16 +1,14 @@
-from rest_framework import serializers
-
-from user.models import User
-
-from reviews.models import Comment, Review, Title
 from django.db.models import Avg
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from reviews.models import (Title, Genre, Category)
+from reviews.models import Genre, Category, Comment, Review, Title
+from user.models import User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
+    """Сериализатор для регистрации."""
     class Meta:
         model = User
         fields = ('username', 'email')
@@ -22,6 +20,7 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.Serializer):
+    """Сериализатор для токена."""
     username = serializers.SlugField(required=True)
     confirmation_code = serializers.SlugField(required=True)
 
@@ -31,6 +30,7 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для User."""
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'username',
@@ -39,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для отзывов."""
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username')
     title = serializers.SlugRelatedField(slug_field='id', read_only=True)
@@ -48,13 +49,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
 
     def validate(self, data):
-        if Review.objects.filter(author=self.context['request'].user).exists():
-            raise serializers.ValidationError('Нельзя оставлять '
-                                              'несколько отзывов')
+        if self.context['request'].method == 'POST':
+            title_id = self.context.get('view').kwargs.get('title_id')
+            if Review.objects.filter(
+                title=get_object_or_404(Title, pk=title_id),
+                author=self.context['request'].user
+            ).exists():
+                raise serializers.ValidationError('Нельзя оставлять '
+                                                  'несколько отзывов')
         return data
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для комментариев."""
     author = author = serializers.SlugRelatedField(
         read_only=True, slug_field='username')
     review = serializers.SlugRelatedField(slug_field='id', read_only=True)

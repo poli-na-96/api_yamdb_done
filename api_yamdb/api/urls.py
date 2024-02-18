@@ -1,5 +1,5 @@
-from rest_framework.routers import DefaultRouter
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from .views import (token, signup, ReviewsViewSet, CommentsViewSet,
                     GenreViewSet, TitleViewSet, CategoryViewSet,
@@ -24,5 +24,4 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/auth/token/', token, name='token'),
     path('v1/auth/signup/', signup, name='signup'),
-#    path('v1/users/me/', UserView.as_view(), name='user_me'),
 ]

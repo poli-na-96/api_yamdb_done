@@ -1,41 +1,31 @@
 from uuid import uuid4
-
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
+
+from rest_framework import status, filters, viewsets
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api_yamdb.settings import ADMIN_EMAIL
-from .serializers import SignUpSerializer, TokenSerializer
+from reviews.models import Review, Title, Genre, Category
 from user.models import User
-
-from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
-from django.shortcuts import get_object_or_404
-# from django.shortcuts import render
-from .serializers import CommentSerializer, ReviewSerializer
-from reviews.models import Review, Title
-
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
-
-from reviews.models import Title, Genre, Category
+from .filters import TitleFilterSet
 from .mixins import GetListCreateDeleteMixin
-from .serializers import (TitleGETSerializer, TitleSerializer,
-                          GenreSerializer, CategorySerializer,
-                          UserSerializer)
 from .permissions import (SuperUserOrAdminOnly,
                           AdminOrReadOnly,
                           ReviewOrCommentPermission,
                           TitlePermission)
-from user.models import User
-# from .permissions import AdminOrReadOnly
+from .serializers import (TitleGETSerializer, TitleSerializer,
+                          CommentSerializer, ReviewSerializer,
+                          GenreSerializer, CategorySerializer,
+                          UserSerializer, SignUpSerializer, TokenSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели User."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (SuperUserOrAdminOnly,)
@@ -62,6 +52,7 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
+    """Регистрация пользователя."""
     user = User.objects.filter(email=request.data.get('email'),
                                username=request.data.get('username'))
     if user.exists():
@@ -80,6 +71,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token(request):
+    """Получение JWT токена."""
     serializer = TokenSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user = get_object_or_404(User, username=serializer.data.get(
@@ -109,6 +101,7 @@ def create_and_send_confirmation_code_by_email(user):
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
+    """Получение, создание, удаление, редактирование отзыва."""
     serializer_class = ReviewSerializer
     permission_classes = (ReviewOrCommentPermission,)
     http_method_names = ['get', 'post', 'patch', 'delete']
@@ -124,6 +117,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
+    """Получение, создание, удаление, редактирование комментария."""
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (ReviewOrCommentPermission,)
@@ -163,8 +157,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [TitlePermission]
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('genre__slug', 'category__slug', 'name', 'year')
+    filter_backends = [DjangoFilterBackend,]
+    filterset_class = TitleFilterSet
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_serializer_class(self):
