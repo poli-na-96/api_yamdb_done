@@ -6,22 +6,26 @@ from .views import (token, signup, ReviewsViewSet, CommentsViewSet,
                     UserViewSet)
 
 app_name = 'api'
-router = DefaultRouter()
+v1_router = DefaultRouter()
 
-router.register(r'titles/(?P<title_id>\d+)/reviews',
-                ReviewsViewSet, basename='reviews')
-router.register(
+v1_router.register(r'titles/(?P<title_id>\d+)/reviews',
+                   ReviewsViewSet, basename='reviews')
+v1_router.register(
     r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentsViewSet, basename='comments'
 )
-router.register(r'genres', GenreViewSet, basename='genres')
-router.register(r'titles', TitleViewSet, basename='titles')
-router.register(r'categories', CategoryViewSet, basename='categories')
-router.register(r'users', UserViewSet)
+v1_router.register('genres', GenreViewSet, basename='genres')
+v1_router.register('titles', TitleViewSet, basename='titles')
+v1_router.register('categories', CategoryViewSet, basename='categories')
+v1_router.register('users', UserViewSet)
 
+
+auth_patterns = [
+    path('auth/token/', token, name='token'),
+    path('auth/signup/', signup, name='signup'),
+]
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
-    path('v1/auth/token/', token, name='token'),
-    path('v1/auth/signup/', signup, name='signup'),
+    path('v1/', include(v1_router.urls)),
+    path('v1/', include(auth_patterns)),
 ]

@@ -4,14 +4,16 @@ from django.db import models
 
 from .validators import validation_year
 
-
+MIN_SCORE = 1
+MAX_SCORE = 10
+MESSAGE = f'Оценка должна бытьне меньше {MIN_SCORE} и не больше{MAX_SCORE}'
 User = get_user_model()
 
 
 class Category(models.Model):
     """Категория произведения."""
     name = models.CharField(max_length=256, verbose_name='Название категории')
-    slug = models.SlugField(max_length=50, unique=True, verbose_name='Слаг')
+    slug = models.SlugField(unique=True, verbose_name='Слаг')
 
     class Meta:
         ordering = ('name',)
@@ -40,8 +42,8 @@ class Title(models.Model):
     """Название произведения."""
     name = models.CharField(max_length=256,
                             verbose_name='Название произведения')
-    year = models.IntegerField(verbose_name='Год выпуска произведения',
-                               validators=[validation_year])
+    year = models.SmallIntegerField(verbose_name='Год выпуска произведения',
+                                    validators=[validation_year])
     description = models.TextField(null=True, blank=True,
                                    verbose_name='Описание произведения')
     genre = models.ManyToManyField(
@@ -81,9 +83,10 @@ class Review(models.Model):
                                on_delete=models.CASCADE,
                                related_name='reviews',
                                verbose_name='Автор отзыва')
-    score = models.SmallIntegerField(verbose_name='Оценка отзыва',
-                                     validators=(MinValueValidator(1),
-                                                 MaxValueValidator(10)))
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка отзыва',
+        validators=(MinValueValidator(MIN_SCORE, message=MESSAGE),
+                    MaxValueValidator(MAX_SCORE, message=MESSAGE)))
     pub_date = models.DateTimeField('Дата добавления отзыва',
                                     auto_now_add=True)
     title = models.ForeignKey(Title,
