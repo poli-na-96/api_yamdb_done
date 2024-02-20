@@ -1,28 +1,27 @@
-from django.db.models import Avg
 from uuid import uuid4
-from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 
-from rest_framework import status, filters, viewsets, permissions
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
 from api_yamdb.settings import ADMIN_EMAIL
-from reviews.models import Review, Title, Genre, Category
+from reviews.models import Category, Genre, Review, Title
 from user.models import User
+
 from .filters import TitleFilterSet
 from .mixins import GetListCreateDeleteMixin
-from .permissions import (SuperUserOrAdminOnly,
-                          AdminOrReadOnly,
-                          ReviewOrCommentPermission,
+from .permissions import (ReviewOrCommentPermission, SuperUserOrAdminOnly,
                           TitlePermission)
-from .serializers import (TitleGETSerializer, TitleSerializer,
-                          CommentSerializer, ReviewSerializer,
-                          GenreSerializer, CategorySerializer,
-                          UserSerializer, SignUpSerializer, TokenSerializer)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer, SignUpSerializer,
+                          TitleGETSerializer, TitleSerializer, TokenSerializer,
+                          UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Review, Category, Genre, Title
+from .models import Category, Comment, Genre, Review, Title
 
 
 @admin.register(Comment)
@@ -33,6 +33,15 @@ class GenreAdmin(admin.ModelAdmin):
 
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
-    list_display = ('name', 'year', 'description')
     search_fields = ('name',)
-    list_filter = ('name', 'year')
+    list_filter = ('name', 'year', 'category')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.prefetch_related('genre')
+        return queryset
+
+    def genre_names(self, obj):
+        return ', '.join([genre.name for genre in obj.genre.all()])
+
+    list_display = ('name', 'year', 'description', 'category', 'genre_names')
