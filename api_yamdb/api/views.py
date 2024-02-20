@@ -14,14 +14,15 @@ from api_yamdb.settings import ADMIN_EMAIL
 from reviews.models import Category, Genre, Review, Title
 from user.models import User
 
-from .filters import TitleFilterSet
-from .mixins import GetListCreateDeleteMixin
-from .permissions import (ReviewOrCommentPermission, SuperUserOrAdminOnly,
-                          TitlePermission)
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer, SignUpSerializer,
-                          TitleGETSerializer, TitleSerializer, TokenSerializer,
-                          UserSerializer)
+from api.filters import TitleFilterSet
+from api.mixins import GetListCreateDeleteMixin
+from api.permissions import (ReviewOrCommentPermission, SuperUserOrAdminOnly,
+                             TitlePermission)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             SignUpSerializer, TitleGETSerializer,
+                             TitleSerializer, TokenSerializer,
+                             UserSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):

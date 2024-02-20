@@ -1,4 +1,4 @@
-from .constants import CHOICES
+from user.constants import CHOICES
 
 
 def max_length_role():
