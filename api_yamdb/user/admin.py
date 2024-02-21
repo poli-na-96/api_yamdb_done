@@ -4,8 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from user.models import User
 
 ADDITIONAL_USER_FIELDS = (
-    (None, {'fields': ('username', 'email', 'bio',
-                       'role', 'confirmation_code')}),
+    (None, {'fields': ('bio', 'role',)}),
 )
 
 
