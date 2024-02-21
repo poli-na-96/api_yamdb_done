@@ -1,4 +1,4 @@
-from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
