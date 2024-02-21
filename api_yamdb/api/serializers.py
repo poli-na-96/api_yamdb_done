@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from user.models import User
@@ -16,11 +17,18 @@ class TokenSerializer(serializers.Serializer):
     """Сериализатор для токена."""
 
     username = serializers.SlugField(required=True)
-    confirmation_code = serializers.SlugField(required=True)
 
     class Meta:
         model = User
         fields = ('username', 'confirmation_code')
+
+    # def validate(self, data):
+    #     # user = get_object_or_404(User, username=serializer.data.get(
+    #     # 'username'))
+    #     user = User.objects.get(username=data['username'])
+    #     if default_token_generator.check_token(user, data.token) is False:
+    #         raise serializers.ValidationError('неверный код')
+    #     return data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -57,7 +65,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для комментариев."""
 
-    author = author = serializers.SlugRelatedField(
+    author = serializers.SlugRelatedField(
         read_only=True, slug_field='username')
     review = serializers.SlugRelatedField(slug_field='id', read_only=True)
 

@@ -45,3 +45,4 @@ class TitleAdmin(admin.ModelAdmin):
         return ', '.join([genre.name for genre in obj.genre.all()])
 
     list_display = ('name', 'year', 'description', 'category', 'genre_names')
+    list_editable = ('category',)

@@ -1,6 +1,3 @@
-from uuid import uuid4
-
-from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,8 +6,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django.contrib.auth.tokens import default_token_generator
 
-from api_yamdb.settings import ADMIN_EMAIL
 from reviews.models import Category, Genre, Review, Title
 from user.models import User
 
@@ -23,6 +20,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              SignUpSerializer, TitleGETSerializer,
                              TitleSerializer, TokenSerializer,
                              UserSerializer)
+from api.service import create_and_send_confirmation_code_by_email
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -64,9 +62,8 @@ def signup(request):
 
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
-    user = User.objects.filter(email=serializer.data.get('email'),
-                               username=serializer.data.get('username'))
+    user = User.objects.get_or_create(email=serializer.data.get('email'),
+                                      username=serializer.data.get('username'))
     create_and_send_confirmation_code_by_email(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -77,30 +74,19 @@ def token(request):
     """Получение JWT токена."""
 
     serializer = TokenSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        user = get_object_or_404(User, username=serializer.data.get(
-            'username'))
-        if request.data.get('confirmation_code') == user.confirmation_code:
-            return Response(
-                {'token': str(AccessToken.for_user(get_object_or_404(
-                    User, username=serializer.data.get('username'))))},
-                status=status.HTTP_200_OK
-            )
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User, username=serializer.data.get(
+        'username'))
+    if default_token_generator.check_token(
+       user, request.data.get('confirmation_code')):
+        return Response(
+            {'token': str(AccessToken.for_user(get_object_or_404(
+                User, username=serializer.data.get('username'))))},
+            status=status.HTTP_200_OK
+        )
     return Response(
         'Неправильно указаны данные в запросе.',
         status=status.HTTP_400_BAD_REQUEST
-    )
-
-
-def create_and_send_confirmation_code_by_email(user):
-    unique_token = uuid4()
-    user.update(confirmation_code=str(unique_token))
-    send_mail(
-        subject='Код подтверждения',
-        message='Ваш код подтверждения: {user.confirmation_code}',
-        from_email=ADMIN_EMAIL,
-        recipient_list=[user[0].email],
-        fail_silently=True,
     )
 
 
