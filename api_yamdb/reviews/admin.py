@@ -35,6 +35,8 @@ class GenreAdmin(admin.ModelAdmin):
 class TitleAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('name', 'year', 'category')
+    list_display = ('name', 'year', 'description', 'category', 'genre_names')
+    list_editable = ('category',)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -43,6 +45,3 @@ class TitleAdmin(admin.ModelAdmin):
 
     def genre_names(self, obj):
         return ', '.join([genre.name for genre in obj.genre.all()])
-
-    list_display = ('name', 'year', 'description', 'category', 'genre_names')
-    list_editable = ('category',)

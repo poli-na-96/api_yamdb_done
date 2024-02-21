@@ -4,8 +4,8 @@ from django.db import models
 
 from reviews.constants import (MAX_LENGTH_CAT_AND_GENRE_NAME,
                                MAX_LENGTH_CAT_AND_GENRE_SLUG,
-                               MAX_LENGTH_TITLE_NAME, MAX_SCORE,
-                               MAX_TO_SHOW, MESSAGE, MIN_SCORE)
+                               MAX_LENGTH_TITLE_NAME, MAX_SCORE, MAX_TO_SHOW,
+                               MESSAGE, MIN_SCORE)
 from reviews.validators import validation_year
 
 User = get_user_model()
