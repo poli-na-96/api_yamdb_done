@@ -51,12 +51,11 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def signup(request):
     """Регистрация пользователя."""
-
-    user = User.objects.filter(email=request.data.get('email'),
-                               username=request.data.get('username'))
-    if user.exists():
-        create_and_send_confirmation_code_by_email(user)
-        return Response(request.data, status=status.HTTP_200_OK)
+    # user = User.objects.filter(email=request.data.get('email'),
+    #                            username=request.data.get('username'))
+    # if user.exists():
+    #     create_and_send_confirmation_code_by_email(user)
+    #     return Response(request.data, status=status.HTTP_200_OK)
 
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -70,21 +69,13 @@ def signup(request):
 @permission_classes([AllowAny])
 def token(request):
     """Получение JWT токена."""
-
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(User, username=serializer.data.get(
-        'username'))
-    if default_token_generator.check_token(
-       user, request.data.get('confirmation_code')):
-        return Response(
-            {'token': str(AccessToken.for_user(get_object_or_404(
-                User, username=serializer.data.get('username'))))},
-            status=status.HTTP_200_OK
-        )
+
     return Response(
-        'Неправильно указаны данные в запросе.',
-        status=status.HTTP_400_BAD_REQUEST
+        {'token': str(AccessToken.for_user(get_object_or_404(
+                      User, username=serializer.data.get('username'))))},
+        status=status.HTTP_200_OK
     )
 
 
@@ -144,14 +135,13 @@ class CategoryViewSet(GetListCreateDeleteMixin):
 class TitleViewSet(viewsets.ModelViewSet):
     """Получение, добавление, изменение и удаление произведения."""
 
-    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [AdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = TitleFilterSet
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    ordering_fields = ['name', 'genre', 'category']
+    ordering_fields = ['name', 'genre', 'category', 'rating']
 
     def get_serializer_class(self):
         """Определяет какой сериализатор будет использоваться

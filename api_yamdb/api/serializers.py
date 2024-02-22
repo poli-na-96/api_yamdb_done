@@ -1,5 +1,7 @@
 # from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from user.models import User
@@ -23,13 +25,13 @@ class TokenSerializer(serializers.Serializer):
         model = User
         fields = ('username', 'confirmation_code')
 
-    # def validate(self, data):
-    #     # user = get_object_or_404(User, username=serializer.data.get(
-    #     # 'username'))
-    #     user = User.objects.get(username=data['username'])
-    #     if default_token_generator.check_token(user, data.token) is False:
-    #         raise serializers.ValidationError('неверный код')
-    #     return data
+    def validate(self, data):
+        username = data.get('username')
+        confirmation_code = data.get('confirmation_code')
+        user = get_object_or_404(User, username=username)
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise serializers.ValidationError('Неверный код подтверждения')
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -96,7 +98,7 @@ class TitleGETSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField()
+    rating = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Title
@@ -129,3 +131,13 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        genre_representation = GenreSerializer(instance.genre, many=True).data
+        category_representation = CategorySerializer(instance.category).data
+
+        representation['genre'] = genre_representation
+        representation['category'] = category_representation
+
+        return representation

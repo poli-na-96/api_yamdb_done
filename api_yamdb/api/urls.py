@@ -20,12 +20,12 @@ v1_router.register('categories', CategoryViewSet, basename='categories')
 v1_router.register('users', UserViewSet)
 
 
-auth_patterns = [
+v1_patterns = [
     path('auth/token/', token, name='token'),
     path('auth/signup/', signup, name='signup'),
+    path('', include(v1_router.urls)),
 ]
 
 urlpatterns = [
-    path('v1/', include(v1_router.urls)),
-    path('v1/', include(auth_patterns)),
+    path('v1/', include(v1_patterns)),
 ]
