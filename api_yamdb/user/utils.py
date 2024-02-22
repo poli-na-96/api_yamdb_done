@@ -6,4 +6,4 @@ def max_length_role():
     for role in CHOICES:
         if len(role[0]) > max_lenth:
             max_lenth = len(role[0])
-        return max_lenth
+    return max_lenth

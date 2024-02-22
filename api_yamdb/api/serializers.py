@@ -17,6 +17,7 @@ class TokenSerializer(serializers.Serializer):
     """Сериализатор для токена."""
 
     username = serializers.SlugField(required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User

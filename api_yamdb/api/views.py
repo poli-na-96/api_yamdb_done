@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from api.filters import TitleFilterSet
 from api.mixins import GetListCreateDeleteMixin
 from api.permissions import (ReviewOrCommentPermission, SuperUserOrAdminOnly,
-                             TitlePermission)
+                             AdminOrReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignUpSerializer, TitleGETSerializer,
@@ -146,7 +146,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    permission_classes = [TitlePermission]
+    permission_classes = [AdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = TitleFilterSet
     http_method_names = ['get', 'post', 'patch', 'delete']

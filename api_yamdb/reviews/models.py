@@ -31,7 +31,7 @@ class CatOrGenre(models.Model):
 class Category(CatOrGenre):
     """Категория произведения."""
 
-    class Meta:
+    class Meta(CatOrGenre.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -39,7 +39,7 @@ class Category(CatOrGenre):
 class Genre(CatOrGenre):
     """Жанр произведения."""
 
-    class Meta:
+    class Meta(CatOrGenre.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -96,7 +96,7 @@ class ReviewOrComment(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ['pub_date']
+        ordering = ('pub_date',)
 
     def __str__(self):
         self.text[:MAX_TO_SHOW]
@@ -113,7 +113,7 @@ class Review(ReviewOrComment):
                               on_delete=models.CASCADE,
                               verbose_name='Произведение')
 
-    class Meta:
+    class Meta(ReviewOrComment.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = 'reviews'
@@ -132,7 +132,7 @@ class Comment(ReviewOrComment):
                                on_delete=models.CASCADE,
                                verbose_name='Отзыв')
 
-    class Meta:
+    class Meta(ReviewOrComment.Meta):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'

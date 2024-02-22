@@ -2,7 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
-from user.constants import CHOICES, MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME, USER
+from user.constants import (CHOICES, MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME,
+                            MODERATOR, ADMIN, USER)
 from user.utils import max_length_role
 from user.validators import validate_username
 
@@ -29,27 +30,20 @@ class User(AbstractUser):
                             max_length=max_length_role(),
                             default=USER,
                             verbose_name='Роль')
-    confirmation_code = models.CharField(verbose_name='Код подтверждения')
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-        ordering = ["username"]
+        ordering = ('username',)
 
-    def is_admin(self, request):
-        return request.user.role == 'admin'
+    @property
+    def is_admin(self):
+        return (self.role == ADMIN or self.is_superuser
+                or self.is_staff)
 
-    def is_moderator(self, request):
-        return request.user.role == 'moderator'
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
 
     def __str__(self):
         return self.username
-
-
-class StreamData:
-    def create(self, fields, lst_values):
-        if len(fields) != len(lst_values):
-            return False
-        for i, key in enumerate(fields):
-            setattr(self, key, lst_values(i))
-        return True
