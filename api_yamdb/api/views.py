@@ -1,4 +1,3 @@
-from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,9 +15,11 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignUpSerializer, TitleGETSerializer,
                              TitleSerializer, TokenSerializer, UserSerializer)
-from api.service import create_and_send_confirmation_code_by_email
 from reviews.models import Category, Genre, Review, Title
 from user.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -51,17 +52,21 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([AllowAny])
 def signup(request):
     """Регистрация пользователя."""
-    # user = User.objects.filter(email=request.data.get('email'),
-    #                            username=request.data.get('username'))
-    # if user.exists():
-    #     create_and_send_confirmation_code_by_email(user)
-    #     return Response(request.data, status=status.HTTP_200_OK)
-
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = User.objects.get_or_create(email=serializer.data.get('email'),
-                                      username=serializer.data.get('username'))
-    create_and_send_confirmation_code_by_email(user)
+    user = User.objects.filter(
+        username=request.data.get('username'),
+        email=request.data.get('email')
+    )
+    unique_token = default_token_generator.make_token(user[0])
+    send_mail(
+        subject='Код подтверждения',
+        message=f'Ваш код подтверждения: {unique_token}',
+        from_email=settings.ADMIN_EMAIL,
+        recipient_list=[user[0].email],
+        fail_silently=True,
+    )
+
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -140,8 +145,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = TitleFilterSet
     http_method_names = ['get', 'post', 'patch', 'delete']
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    ordering_fields = ['name', 'genre', 'category', 'rating']
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('reviews__score')
+    ordering_fields = ['name', 'genre', 'category']
 
     def get_serializer_class(self):
         """Определяет какой сериализатор будет использоваться

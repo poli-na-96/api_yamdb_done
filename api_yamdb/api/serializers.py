@@ -1,18 +1,40 @@
-# from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+from django.core.validators import RegexValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from user.models import User
+from user.validators import validate_username
+from user.constants import (MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME)
 
 
 class SignUpSerializer(serializers.ModelSerializer):
     """Сериализатор для регистрации."""
+    email = serializers.EmailField(max_length=MAX_LENGTH_EMAIL)
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        validators=(
+            RegexValidator(
+                regex='^[a-zA-Z0-9@/./+/-/_]*$',
+                message='Можно использовать только '
+                'латинские буквы, цифры и символы '
+                '@/./+/-/_'
+            ), validate_username))
 
     class Meta:
         model = User
         fields = ('username', 'email')
+
+    def validate(self, data):
+        try:
+            User.objects.get_or_create(
+                username=data.get('username'),
+                email=data.get('email')
+            )
+        except Exception:
+            raise serializers.ValidationError('поле email или username занято')
+        return data
 
 
 class TokenSerializer(serializers.Serializer):
