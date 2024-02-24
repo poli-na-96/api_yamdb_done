@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,17 +12,14 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilterSet
 from api.mixins import GetListCreateDeleteMixin
-from api.permissions import (ReviewOrCommentPermission, SuperUserOrAdminOnly,
-                             AdminOrReadOnly)
+from api.permissions import (AdminOrReadOnly, ReviewOrCommentPermission,
+                             SuperUserOrAdminOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              SignUpSerializer, TitleGETSerializer,
                              TitleSerializer, TokenSerializer, UserSerializer)
 from reviews.models import Category, Genre, Review, Title
 from user.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -54,16 +54,16 @@ def signup(request):
     """Регистрация пользователя."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = User.objects.filter(
+    user = User.objects.get(
         username=request.data.get('username'),
         email=request.data.get('email')
     )
-    unique_token = default_token_generator.make_token(user[0])
+    unique_token = default_token_generator.make_token(user)
     send_mail(
         subject='Код подтверждения',
         message=f'Ваш код подтверждения: {unique_token}',
         from_email=settings.ADMIN_EMAIL,
-        recipient_list=[user[0].email],
+        recipient_list=[user.email],
         fail_silently=True,
     )
 
